@@ -1,0 +1,20 @@
+{
+  "name": "dapptry",
+  "version": "1.0.0",
+  "description": "TRY DApp Project",
+  "main": "truffle-config.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "lite-server"
+  },
+  "author": "MLC",
+  "license": "ISC",
+  "dependencies": {
+    "@truffle/contract": "^4.5.14",
+    "lite-server": "^2.6.1",
+    "web3": "^1.7.4"
+  }
+}
