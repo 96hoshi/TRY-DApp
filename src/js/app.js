@@ -61,15 +61,36 @@ App = {
 
         App.contracts["Contract"].deployed().then(async (instance) => {
 
-            // web3.eth.getBlockNumber(function (error, block) {
-                // click is the Solidity event
-                instance.click().on('data', function (event) {
-                    $("#eventId").html("Event catched!");
-                    console.log("Event catched");
-                    console.log(event);
-                    // If event has parameters: event.returnValues.valueName
-                });
-            // });
+        // web3.eth.getBlockNumber(function (error, block) {
+            // click is the Solidity event
+            instance.BuyTicket().on('data', function (event) {
+                console.log("Event catched");
+                console.log(event);
+                $("#eventResult").html(event.returnValues.owner);
+                // If event has parameters: event.returnValues.valueName
+            });
+            instance.OpenRound().on('data', function (event) {
+                console.log("Event catched");
+                console.log(event);
+                $("#eventEnd").html(event.returnValues.roundEnds);
+            });
+            instance.CloseRound().on('data', function (event) {
+                console.log("Event catched");
+                console.log(event);
+                $("#eventWin").html(event.returnValues.winningNumbers);
+            });
+            instance.NFTPrizeWon().on('data', function (event) {
+                console.log("Event catched");
+                console.log(event);
+                $("#eventNFTwinner").html(event.returnValues.winner);
+                $("#eventNFTtoken").html(event.returnValues.NFTtoken);
+                $("#eventNFTclass").html(event.returnValues.nftClass);
+            });
+            instance.CloseContract().on('data', function (event) {
+                console.log("Contract closed");
+                console.log(event);
+            });
+
         });
 
         return App.render();
@@ -77,30 +98,69 @@ App = {
 
     // Get a value from the smart contract
     render: function() {
+        // TODO: define what render should do
+        // TODO: differenziare le interfacce tra lottery owner e utente normale 
 
         App.contracts["Contract"].deployed().then(async(instance) =>{
-
-            const m = await instance.M(); // Solidity uint are Js BN (BigNumbers) 
-            console.log(m.toNumber());
-            $("#M").html("" + m);
+            const manager = await instance.lotteryManager();
+            console.log(manager.toString());
+            $("#manager").html("" + manager);
         });
     },
 
-    // Call a function from a smart contract
-    // The function send an event that triggers a transaction:: Metamask opens to confirm the transaction by the user
-    pressClick: function() {
+    buy: function() {
+        // TODO: handle to confirm payment by the address that pressed the button
 
         console.log(App.contracts["Contract"])
         App.contracts["Contract"].deployed().then(async(instance) =>{
-            // TODO: call Lottery functions
-            await instance.pressClick({from: App.account});
+            console.log("before buy")
+            // TODO: define index page to let the user put numbers, and value to pay the ticket
+            await instance.buy([1,2,3,4,5,6], {from: App.account, value: 10000000000000})
+            console.log("after buy")
         });
-    } 
+    },
+
+    startNewRound: function() {
+
+        console.log(App.contracts["Contract"])
+        App.contracts["Contract"].deployed().then(async(instance) =>{
+            await instance.startNewRound({from: App.account});
+        });
+    },
+
+    drawNumbers: function() {
+
+        console.log(App.contracts["Contract"])
+        App.contracts["Contract"].deployed().then(async(instance) =>{
+            await instance.drawNumbers({from: App.account});
+        });
+    },
+
+    givePrizes: function() {
+
+        console.log(App.contracts["Contract"])
+        App.contracts["Contract"].deployed().then(async(instance) =>{
+            await instance.givePrizes({from: App.account});
+        });
+    },
+
+    closeLottery: function() {
+
+        console.log(App.contracts["Contract"])
+        App.contracts["Contract"].deployed().then(async(instance) =>{
+            // TODO: define _to the address given by the manager to transfer eth
+            const _to = App.account
+            await instance.closeLottery(_to, {from: App.account});
+        });
+    }
 }
 
 // Call init whenever the window loads
-$(function() {
-    $(window).on('load', function () {
+/*$(function() {
+    $(window).on('load', function () {  
         App.init();
     });
+});*/
+$(document).ready(function () {
+    App.init();
 });
