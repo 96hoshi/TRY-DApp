@@ -48,7 +48,6 @@ module.exports = {
      gas: 6721975,           // Gas sent with each transaction (default: ~6700000)
      gasPrice: 20000000000,  // 20 gwei (in wei) (default: 100 gwei)
     },
-    
     // An additional network, but with some advanced options…
     // advanced: {
     //   port: 8777,             // Custom port

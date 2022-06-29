@@ -14,7 +14,7 @@ contract Lottery {
     uint public constant K = 5;                             // parameter to draw numbers
 
     uint public M;
-    bool public lotteryActive;
+    bool public lotteryActive = false;
     address [] public players;
     address public lotteryManager;
     uint public numberClosedRound;
@@ -30,16 +30,23 @@ contract Lottery {
     mapping(uint => uint[N_NUMBERS]) private ticketNumbers;  // index of the ticket => numbers of the corresponing ticket
     uint private tickets;                                    // store tickets id
 
-    event OpenRound(uint roundEnds);    
-    event CloseRound(uint[N_NUMBERS] winningNumbers);
-    event CloseContract();
-    event NFTPrizeWon(address winner, uint NFTtoken, uint nftClass);
+    event StartLottery(address owner);
+    event OpenRound(address owner, uint roundEnds);
+    event CloseRound(address owner, uint[N_NUMBERS] winningNumbers);
+    event CloseContract(address owner);
+    event NFTPrizeWon(address owner, uint NFTtoken, uint nftClass);
     event BuyTicket(address owner, uint[N_NUMBERS] ticket);
     event RedrawNumber(uint index);
 
 
-    constructor (uint _M) {
+    constructor () {
+    }
+
+    function startLottery (uint _M) public {
+        require(!lotteryActive);
+
         lotteryManager = msg.sender;
+        emit StartLottery(lotteryManager);
         M = _M;
         lotteryActive = true;
         NFTman = new NFTManager();
@@ -52,7 +59,7 @@ contract Lottery {
        }
         // fixed round duration in terms of number of blocks
         numberClosedRound = block.number + M;
-        emit OpenRound(numberClosedRound);
+        emit OpenRound(lotteryManager, numberClosedRound);
     }
 
     // allows users to buy a ticket. The numbers picked by a user in
@@ -98,7 +105,7 @@ contract Lottery {
         require(block.number > numberClosedRound + K, "A lottery round is still active. You can not start a new round now.");
 
         numberClosedRound = block.number + M;
-        emit OpenRound(numberClosedRound);
+        emit OpenRound(lotteryManager, numberClosedRound);
     }
 
     // used by the lottery operator to draw numbers of the current lottery round
@@ -128,7 +135,7 @@ contract Lottery {
         }
         winningNumbers = drawnNumbers;
 
-        emit CloseRound(drawnNumbers);
+        emit CloseRound(lotteryManager, drawnNumbers);
     }
 
     // used by lottery operator to distribute the prizes of the current lottery round
@@ -211,7 +218,7 @@ contract Lottery {
         }
         // close contract
         lotteryActive = false;
-        emit CloseContract();
+        emit CloseContract(lotteryManager);
         selfdestruct(payable(_to));
     }
 
