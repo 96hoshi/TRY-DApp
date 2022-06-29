@@ -10,20 +10,26 @@
     <title>DApp</title>
 </head>
 <body>
-
+    <!-- Alert notification -->
+    <div class="alert alert-info" id="alert">
+      <h5 id="eventMessage"></h5>
+    </div>
+    <!-- Body -->
     <div class="container" >
         <div class="row">
-            <div class="col-lg-3">
-                <h1 class="text-center">Side panel</h1>
-            </div>        
             <div id="mainUI" class="col-lg-9">
                 <h1 class="text-center">TRY: the nfT lotteRY</h1>
                 <h3 class="text-center" id="accountId">Your address: </h3>
-                <h2>The owner of this Lottery is:</h2>
-                <h3 id="manager"></h3>
-                <button class="btn btn-primary" onclick="App.buy()">Buy Ticket</button>
+                <h2>The owner of this DApp is:</h2>
+                <h3 id="creator"></h3>
+                  <div class="form-group">
+                    <label for="ImputDuration">Round duration</label>
+                    <input type="text" class="form-control" id="inputDuration" placeholder="Enter round duration">
+                  </div>
+                <button class="btn btn-primary" onclick="App.startLottery()">Create Lottery</button>
                 <h3 id="result"></h3>
-                <!-- <button class="btn btn-primary" onclick="App.test()">Fire event</button> -->
+                <button class="btn btn-primary" onclick="App.buy()">Buy</button>
+                <h3 id="result"></h3>
             </div>
         </div>
     </div>

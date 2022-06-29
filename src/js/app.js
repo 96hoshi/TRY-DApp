@@ -39,6 +39,8 @@ App = {
     /* Upload the contract's abstractions */
     initContract: function() {
 
+        $("#alert").hide();
+
         // Get current account
         web3.eth.getCoinbase(function(err, account) {
             if(err == null) {
@@ -63,24 +65,42 @@ App = {
 
         // web3.eth.getBlockNumber(function (error, block) {
             // click is the Solidity event
-            instance.BuyTicket().on('data', function (event) {
-                console.log("Event catched");
+            instance.StartLottery().on('data', function (event) {
+                console.log("Event Start Lottery");
                 console.log(event);
-                $("#eventResult").html(event.returnValues.owner);
-                // If event has parameters: event.returnValues.valueName
+                console.log("app: "+ App.account);
+                console.log("event: "+ event.returnValues.owner);
+                if (App.account == event.returnValues.owner.toLowerCase()){
+                    $("#eventMessage").html("Lottery created");
+                    $("#alert").fadeTo(2000, 500).slideUp(500, function(){
+                        $("#alert").slideUp(500);
+                    });
+                }
+            });
+            instance.BuyTicket().on('data', function (event) {
+                console.log("Event buy ticket");
+                console.log(event);
+                console.log("app: "+ App.account);
+                console.log("event: "+event.returnValues.owner);
+                if (App.account === event.returnValues.owner.toLowerCase()){
+                    $("#eventMessage").html("Success! Ticket bought");
+                    $("#alert").fadeTo(2000, 500).slideUp(500, function(){
+                        $("#alert").slideUp(500);
+                    });
+                }
             });
             instance.OpenRound().on('data', function (event) {
-                console.log("Event catched");
+                console.log("Event open round");
                 console.log(event);
                 $("#eventEnd").html(event.returnValues.roundEnds);
             });
             instance.CloseRound().on('data', function (event) {
-                console.log("Event catched");
+                console.log("Event close round");
                 console.log(event);
                 $("#eventWin").html(event.returnValues.winningNumbers);
             });
             instance.NFTPrizeWon().on('data', function (event) {
-                console.log("Event catched");
+                console.log("Event prize won");
                 console.log(event);
                 $("#eventNFTwinner").html(event.returnValues.winner);
                 $("#eventNFTtoken").html(event.returnValues.NFTtoken);
@@ -102,11 +122,21 @@ App = {
         // TODO: differenziare le interfacce tra lottery owner e utente normale 
 
         App.contracts["Contract"].deployed().then(async(instance) =>{
-            const manager = await instance.lotteryManager();
-            console.log(manager.toString());
-            $("#manager").html("" + manager);
+            const creator = await instance.lotteryManager();
+            console.log(creator.toString());
+            $("#creator").html("" + creator);
         });
     },
+
+    startLottery: function() {
+
+        console.log(App.contracts["Contract"])
+        App.contracts["Contract"].deployed().then(async(instance) =>{
+            const duration = +document.getElementById("inputDuration").value;
+            await instance.startLottery(duration, {from: App.account});
+        });
+    },
+
 
     buy: function() {
         // TODO: handle to confirm payment by the address that pressed the button
@@ -155,12 +185,14 @@ App = {
     }
 }
 
-// Call init whenever the window loads
-/*$(function() {
-    $(window).on('load', function () {  
-        App.init();
+/*publishEvent = function(message) {
+    $("#eventMessage").html(message);
+    $("#alert").fadeTo(2000, 500).slideUp(500, function(){
+        $("#alert").slideUp(500);
     });
-});*/
+}*/
+
+// Call init whenever the window loads
 $(document).ready(function () {
     App.init();
 });
