@@ -19,25 +19,41 @@
       <h5 id="eventMessage"></h5>
     </div>
     <!-- Body -->
-        <div class="container-fluid text-center">
+    <div class="container-fluid text-center">
       <div class="row content">
         <br>
         <div class="col-sm-2 sidenav">
+            <br>
+          <h3>Lottery Info</h3>
+          <br>
+          <h6 id="statusRound">Round: </h6>
+          <h6 id="closingBlock">Closing block: </h6>
+          <h6 id="statusBlock">Current block: </h6>
+          <h6 id="tickets">Your Tickets: </h6>
         </div>
+
     <div class="container" >
         <div class="row">
             <div id="mainUI" class="col-lg-9">
                 <br>
-                <h1 class="display-4">Start your NFT Lottery!</h1>
-            <br>
-                  <div class="form-group">
-                    <label for="ImputDuration">Input the round duration for the Lottery:</label>
-                    <input type="text" class="form-control" id="inputDuration" placeholder="10">
-                  </div>
-                <div class="d-flex justify-content-center">
-                <button class="btn btn-primary btn-lg btn-block" onclick="App.startLottery()">Start Lottery</button>
-                <div>
-            </div>
+                <h1 class="display-4">Welcome to the Lottery!</h1>
+                <br>
+                <h4 class="text-center">Choose the numbers of your ticket:</h4>
+                    <div class="input-group">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text">Numbers</span>
+                      </div>
+                      <input type="number" min="1" max="69" aria-label="first-number" name="inputNumbers[]" class="form-control" required/>
+                      <input type="number" min="1" max="69" aria-label="second-number" name="inputNumbers[]" class="form-control" required/>
+                      <input type="number" min="1" max="69" aria-label="third-number" name="inputNumbers[]" class="form-control" required/>
+                      <input type="number" min="1" max="69" aria-label="fourth-number" name="inputNumbers[]" class="form-control" required/>
+                      <input type="number" min="1" max="69" aria-label="fifth-number" name="inputNumbers[]" class="form-control" required/>
+                      <input type="number" min="1" max="26" aria-label="powerball" name="inputNumbers[]" class="form-control" required/>
+                    </div>
+                    <br>
+                    <div class="d-flex justify-content-center">
+                    <button class="btn btn-primary" onclick="App.buy()">Buy Ticket</button>
+                    <div>
         </div>
     </div>
 
