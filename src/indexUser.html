@@ -11,7 +11,7 @@
 </head>
 <body>
     <nav class="navbar navbar-dark bg-dark">
-        <span class="navbar-brand mb-0 h1">TRY: the nfT lotteRY</span>
+        <a class="navbar-brand mb-0 h1" href="index.html">TRY: the nfT lotteRY</a>
             <span class="navbar-text" id="accountId">Your address:</span>
     </nav>
     <!-- Alert notification -->
@@ -29,14 +29,13 @@
           <h6 id="statusRound">Round: </h6>
           <h6 id="closingBlock">Closing block: </h6>
           <h6 id="statusBlock">Current block: </h6>
-          <h6 id="tickets">Your Tickets: </h6>
         </div>
 
     <div class="container" >
         <div class="row">
             <div id="mainUI" class="col-lg-9">
                 <br>
-                <h1 class="display-4">Welcome to the Lottery!</h1>
+                <h1 class="display-4">Buy your ticket!</h1>
                 <br>
                 <h4 class="text-center">Choose the numbers of your ticket:</h4>
                     <div class="input-group">
@@ -54,6 +53,7 @@
                     <div class="d-flex justify-content-center">
                     <button class="btn btn-primary" onclick="App.buy()">Buy Ticket</button>
                     <div>
+                    <span class="text-center" id="eventWin"></span>
         </div>
     </div>
 
