@@ -64,8 +64,6 @@ App = {
 
         App.contracts["Contract"].deployed().then(async (instance) => {
 
-        // web3.eth.getBlockNumber(function (error, block) {
-        // click is the Solidity event
         instance.StartLottery().on('data', function (event) {
             console.log("Event Start Lottery");
             console.log(event);
@@ -103,7 +101,8 @@ App = {
         instance.CloseRound().on('data', function (event) {
             console.log("Event close round");
             console.log(event);
-            $("#eventWin").html("The winning numbers are: "+event.returnValues.winningNumbers);
+            console.log(event.returnValues.winningNumbers);
+            $("#eventWin").html("The drawn winning numbers are: "+event.returnValues.winningNumbers);
             $("#eventMessage").html("Round Closed!");
             $("#alert").fadeTo(2000, 500).slideUp(500, function(){
                 $("#alert").slideUp(500);
@@ -116,7 +115,7 @@ App = {
             if (App.account == owner){
                 $("#eventNFTwinner").html(owner);
                 $("#eventNFTtoken").html(event.returnValues.NFTtoken);
-                $("#eventNFTclass").html(event.returnValues.nftClass);
+                $("#eventNFTclass").html(+"You won a NFT of class "+event.returnValues.nftClass);
                 $("#eventMessage").html("You won!");
                 $("#alert").fadeTo(2000, 500).slideUp(500, function(){
                     $("#alert").slideUp(500); 
@@ -137,19 +136,26 @@ App = {
         return App.render();
     },
 
-    // Get a value from the smart contract
     render: function() {
-        // TODO: define what render should do
-        // TODO: differenziare le interfacce tra lottery owner e utente normale 
 
         App.contracts["Contract"].deployed().then(async(instance) =>{
             const creator = await instance.lotteryManager();
             const lottery = await instance.lotteryActive();
             const blockClosed = await instance.numberClosedRound();
+            const K = await instance.K();
+            var numbers = new Array(6);
+            
+            for (let i = 0; i < 6; i++) {
+                let wNumber = await instance.winningNumbers(i);
+                numbers[i] = wNumber;
+            }
+            console.log(numbers)
+
             const latest = await web3.eth.getBlockNumber()
+            const prizes = parseInt(blockClosed) + parseInt(K) + 1; 
 
             var status = "Unactive"
-            if (latest <= blockClosed){
+            if (latest < blockClosed){
                 status = "Active"
             }
 
@@ -157,6 +163,10 @@ App = {
             $("#statusRound").html("Round: "+ status)
             $("#closingBlock").html("Closing block: " + blockClosed)
             $("#statusBlock").html("Current block: " + latest)
+            $("#statusPrizes").html("Give prizes from block: " + prizes)
+            if (numbers[0] != 0 && latest > prizes){
+                $("#eventWin").html("The drawn winning numbers are: "+numbers);
+            }
 
             console.log("creator:" + creator.toString());
             $("#creator").html("" + creator);
@@ -242,10 +252,9 @@ App = {
                 await instance.startNewRound({from: App.account});
             } catch (e) {
                 console.log(e);
-                $("#eventMessage").html(e.reason);
+                $("#eventMessage").html(e);
                 $("#alert").fadeTo(2000, 500).slideUp(500, function(){
                     $("#alert").slideUp(500);
-                return;
                 });
             }
         });
@@ -259,10 +268,9 @@ App = {
                 await instance.drawNumbers({from: App.account});
             } catch (e) {
                 console.log(e);
-                $("#eventMessage").html(e.reason);
+                $("#eventMessage").html(e);
                 $("#alert").fadeTo(2000, 500).slideUp(500, function(){
                     $("#alert").slideUp(500);
-                return;
                 });
             }
         });
@@ -276,10 +284,9 @@ App = {
                 await instance.givePrizes({from: App.account});
             } catch (e) {
                 console.log(e);
-                $("#eventMessage").html(e.reason);
+                $("#eventMessage").html(e);
                 $("#alert").fadeTo(2000, 500).slideUp(500, function(){
                     $("#alert").slideUp(500);
-                return;
                 });
             }
         });
