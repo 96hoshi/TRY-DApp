@@ -74,6 +74,7 @@ App = {
                 $("#alert").fadeTo(2000, 500).slideUp(500, function(){
                     $("#alert").slideUp(500);
                 });
+                self.location = "indexManager.html"
             }
         });
         instance.BuyTicket().on('data', function (event) {
@@ -170,6 +171,11 @@ App = {
 
             console.log("creator:" + creator.toString());
             $("#creator").html("" + creator);
+
+            console.log(self.location)
+            if (App.account != creator.toLowerCase() && self.location == "http://localhost:3000/indexManager.html"){
+                self.location = "index.html"
+            }
         });
     },
 
@@ -177,8 +183,9 @@ App = {
 
         App.contracts["Contract"].deployed().then(async(instance) =>{
             const manager = await instance.lotteryManager();
+            const active = await instance.lotteryActive();
             console.log(manager)
-            if (manager == null) {
+            if (!active) {
                 self.location = "indexStartLottery.html"
             } else if (App.account == manager.toLowerCase()) {
                 self.location = "indexManager.html"
@@ -192,7 +199,18 @@ App = {
     },
 
     renderUser: function() {
-        self.location = "indexUser.html"
+        App.contracts["Contract"].deployed().then(async(instance) =>{
+            const active = await instance.lotteryActive();
+            if (!active){
+                $("#eventMessage").html("Error: No lottery active");
+                $("#alert").fadeTo(2000, 500).slideUp(500, function(){
+                    $("#alert").slideUp(500);
+                });
+            }
+            else {
+                self.location = "indexUser.html"
+            }
+        });
     },
 
     startLottery: function() {
