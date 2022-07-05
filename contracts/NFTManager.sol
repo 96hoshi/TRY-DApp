@@ -46,4 +46,9 @@ contract NFTManager is ERC721URIStorage  {
         require(msg.sender == owner, "Only the owner can transfer ownership.");
         safeTransferFrom(owner, to, tokenId);
     }
+
+    function getTokenURI(uint256 tokenId) public view returns (string memory){
+        require(tokenId > 0 && tokenId <= _tokenIds.current());
+        return tokenURI(tokenId);
+    }
 }

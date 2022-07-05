@@ -11,7 +11,7 @@ contract Lottery {
     uint private constant N_NUMBERS = 6;
     uint private constant MAX_NUMBER = 69;
     uint private constant MAX_POWERBALL = 26;
-    uint public constant K = 5;                             // parameter to draw numbers
+    uint public constant K = 2;                             // parameter to draw numbers
 
     uint public M;
     bool public lotteryActive = false;
@@ -22,19 +22,20 @@ contract Lottery {
     NFTManager private NFTman;
 
     mapping(uint => bool) private NFTAviable;                // uint NFT class => aviability in lottery storage
-    mapping(uint => uint256) private NFTPrize;               // uint NFT class => NFT tokenId 
-    mapping(address => uint[]) public NFTList;               // address of the owner => list of NFT possessed
-    mapping(uint => address) private NFTMap;                 // NFT tokenId => owner address
+    mapping(uint => uint256) private NFTPrize;               // uint NFT class => NFT tokenId
+    mapping(address => uint[]) public NFTList;               // address of the owner => list of tokenId NFT possessed
+    mapping(address => uint[]) private NFTListClass;         // address of the owner => list of NFT class possessed
 
     mapping(address => uint[]) private userTicketList;       // address of the owner => list of ticket possessed
     mapping(uint => uint[N_NUMBERS]) private ticketNumbers;  // index of the ticket => numbers of the corresponing ticket
-    uint private tickets;                                    // store tickets id
+    uint public tickets;                                    // store tickets id
 
     event StartLottery(address owner);
     event OpenRound(address owner, uint roundEnds);
     event CloseRound(address owner, uint[N_NUMBERS] winningNumbers);
     event CloseContract(address owner);
     event NFTPrizeWon(address owner, uint NFTtoken, uint nftClass);
+    event NotWinner(address owner);
     event BuyTicket(address owner, uint[N_NUMBERS] ticket);
     event RedrawNumber(uint index);
 
@@ -43,7 +44,7 @@ contract Lottery {
     }
 
     function startLottery (uint _M) public {
-        require(!lotteryActive);
+        require(!lotteryActive, "The lottery is already active!");
 
         lotteryManager = msg.sender;
         emit StartLottery(lotteryManager);
@@ -103,6 +104,7 @@ contract Lottery {
         require(lotteryActive);
         require(msg.sender == lotteryManager, "Only the manager can start the lottery.");
         require(block.number > numberClosedRound + K, "A lottery round is still active. You can not start a new round now.");
+        require(players.length == 0, "You need to give prizes befor starting a new round!");
 
         numberClosedRound = block.number + M;
         emit OpenRound(lotteryManager, numberClosedRound);
@@ -143,17 +145,20 @@ contract Lottery {
         require(lotteryActive);
         require(msg.sender == lotteryManager, "Only the manager can give prizes lottery.");
         require(block.number > numberClosedRound + K, "Error: the round is still active.");
+        require(winningNumbers[0] != 0 || winningNumbers.length != 0);
 
         uint [] memory ticket_index;
         uint [N_NUMBERS] memory t_numbers;
         uint prize_class;
         uint prize;
         address player;
+        uint count;
 
         for (uint i = 0; i < players.length; i++) {
             // retrieve the index list of a player's tickets
             player = players[i];
             ticket_index = userTicketList[player];
+            count = 0;
             for (uint j = 0; j < ticket_index.length; j++) {
                 // for every ticket retrive the numbers
                 t_numbers = ticketNumbers[ticket_index[j]];
@@ -170,13 +175,18 @@ contract Lottery {
                     NFTAviable[prize_class] = false;
                     // update user belongings
                     NFTList[player].push(prize);
-                    NFTMap[prize] = player;
+                    NFTListClass[player].push(prize_class);
 
                     emit NFTPrizeWon(player, prize, prize_class);
+                    count++;
                 }
                 delete ticketNumbers[ticket_index[j]];
             }
             delete userTicketList[player];
+            if (count == 0){
+                emit NotWinner(player);
+            }
+
         }
         payable(lotteryManager).transfer(address(this).balance);
 
@@ -307,6 +317,29 @@ contract Lottery {
         } else {
             return 0;
         }
+    }
 
+    function getNFTListClass() public view returns (uint[] memory) {
+        require(lotteryActive);
+        require(msg.sender != address(0));
+
+        return NFTListClass[msg.sender];
+    }
+
+    function getNFTlistURI() public view returns (string[] memory) {
+        require(lotteryActive);
+        require(msg.sender != address(0));
+        uint [] memory l = NFTList[msg.sender];
+        string [] memory NFT;
+
+        for (uint i = 0; i < l.length; i++) {
+            NFT[i] = getURI(l[i]);
+        }
+        return NFT;
+    }
+
+    function getURI(uint256 tokenId) private view returns (string memory) {
+        require(lotteryActive);
+        return NFTman.getTokenURI(tokenId);
     }
 }
