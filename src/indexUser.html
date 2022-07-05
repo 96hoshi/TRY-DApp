@@ -14,7 +14,7 @@
         <a class="navbar-brand mb-0 h1" href="index.html">TRY: the nfT lotteRY</a>
             <span class="navbar-text" id="accountId">Your address:</span>
     </nav>
-    <!-- Alert notification -->
+            <!-- Alert notification -->
     <div class="alert alert-info" id="alert">
       <h5 id="eventMessage"></h5>
     </div>
@@ -27,6 +27,8 @@
           <h3>Lottery Info</h3>
           <br>
           <h6 id="statusRound">Round: </h6>
+          <h6 id="userPrizes">Your prizes: </h6>
+<!--           <button class="btn btn-link" onclick="App.showPrize()">Show your prizes</button> -->
         </div>
 
     <div class="container" >
@@ -40,12 +42,12 @@
                       <div class="input-group-prepend">
                         <span class="input-group-text">Numbers</span>
                       </div>
-                      <input type="number" min="1" max="69" aria-label="first-number" name="inputNumbers[]" class="form-control" required/>
-                      <input type="number" min="1" max="69" aria-label="second-number" name="inputNumbers[]" class="form-control" required/>
-                      <input type="number" min="1" max="69" aria-label="third-number" name="inputNumbers[]" class="form-control" required/>
-                      <input type="number" min="1" max="69" aria-label="fourth-number" name="inputNumbers[]" class="form-control" required/>
-                      <input type="number" min="1" max="69" aria-label="fifth-number" name="inputNumbers[]" class="form-control" required/>
-                      <input type="number" min="1" max="26" aria-label="powerball" name="inputNumbers[]" class="form-control" required/>
+                      <input type="number" min="1" max="69" aria-label="first-number" name="inputNumbers[]" class="form-control" placeholder="1st" required/>
+                      <input type="number" min="1" max="69" aria-label="second-number" name="inputNumbers[]" class="form-control" placeholder="2nd" required/>
+                      <input type="number" min="1" max="69" aria-label="third-number" name="inputNumbers[]" class="form-control" placeholder="3rd" required/>
+                      <input type="number" min="1" max="69" aria-label="fourth-number" name="inputNumbers[]" class="form-control" placeholder="4th" required/>
+                      <input type="number" min="1" max="69" aria-label="fifth-number" name="inputNumbers[]" class="form-control" placeholder="5th" required/>
+                      <input type="number" min="1" max="26" aria-label="powerball" name="inputNumbers[]" class="form-control" placeholder="Powerball"required/>
                     </div>
                     <br>
                     <div class="d-flex justify-content-center">
