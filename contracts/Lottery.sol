@@ -15,6 +15,8 @@ contract Lottery {
 
     uint public M;
     bool public lotteryActive = false;
+    bool public prizeGiven;
+    bool public numbersDraw;
     address [] public players;
     address public lotteryManager;
     uint public numberClosedRound;
@@ -60,6 +62,8 @@ contract Lottery {
        }
         // fixed round duration in terms of number of blocks
         numberClosedRound = block.number + M;
+        prizeGiven = false;
+        numbersDraw = false;
         emit OpenRound(lotteryManager, numberClosedRound);
     }
 
@@ -107,6 +111,8 @@ contract Lottery {
         require(players.length == 0, "You need to give prizes befor starting a new round!");
 
         numberClosedRound = block.number + M;
+        prizeGiven = false;
+        numbersDraw = false;
         emit OpenRound(lotteryManager, numberClosedRound);
     }
 
@@ -115,7 +121,7 @@ contract Lottery {
         require(lotteryActive);
         require(msg.sender == lotteryManager, "Only the manager can draw the numbers of the lottery.");
         require(block.number > numberClosedRound + K, "Error: You need to wait to extract numbers.");
-        require(winningNumbers[0] == 0 || winningNumbers.length == 0);
+        require(numbersDraw == false);
 
         uint drawn;
         uint [N_NUMBERS] memory drawnNumbers;
@@ -136,6 +142,7 @@ contract Lottery {
             }
         }
         winningNumbers = drawnNumbers;
+        numbersDraw = true;
 
         emit CloseRound(lotteryManager, drawnNumbers);
     }
@@ -145,7 +152,7 @@ contract Lottery {
         require(lotteryActive);
         require(msg.sender == lotteryManager, "Only the manager can give prizes lottery.");
         require(block.number > numberClosedRound + K, "Error: the round is still active.");
-        require(winningNumbers[0] != 0 || winningNumbers.length != 0);
+        require(prizeGiven == false);
 
         uint [] memory ticket_index;
         uint [N_NUMBERS] memory t_numbers;
@@ -193,6 +200,7 @@ contract Lottery {
         tickets = 0;
         delete players;
         delete winningNumbers;
+        prizeGiven = true;
     }
 
     // used to mint new collectibles
@@ -326,19 +334,14 @@ contract Lottery {
         return NFTListClass[msg.sender];
     }
 
-    function getNFTlistURI() public view returns (string[] memory) {
+    function getNFTList() public view returns (uint[] memory) {
         require(lotteryActive);
         require(msg.sender != address(0));
-        uint [] memory l = NFTList[msg.sender];
-        string [] memory NFT;
 
-        for (uint i = 0; i < l.length; i++) {
-            NFT[i] = getURI(l[i]);
-        }
-        return NFT;
+        return NFTList[msg.sender];
     }
 
-    function getURI(uint256 tokenId) private view returns (string memory) {
+    function getURI(uint256 tokenId) public view returns (string memory) {
         require(lotteryActive);
         return NFTman.getTokenURI(tokenId);
     }
