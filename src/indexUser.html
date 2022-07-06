@@ -28,7 +28,8 @@
           <br>
           <h6 id="statusRound">Round: </h6>
           <h6 id="userPrizes">Your prizes: </h6>
-<!--           <button class="btn btn-link" onclick="App.showPrize()">Show your prizes</button> -->
+          <button class="btn btn-link" onclick="App.showPrize()">Show your prizes</button>
+          <h6 id="prize"></h6>
         </div>
 
     <div class="container" >
@@ -37,6 +38,9 @@
                 <br>
                 <h1 class="display-4">Buy your ticket!</h1>
                 <br>
+                <p>The first five numbers are standard numbers from 1 to 69. <br>
+                The sixth number is a special Powerball number from 1 to 26 that offers extra rewards.<br>
+                Each ticket has a fixed price of 100 gwei.<p>
                 <h4 class="text-center">Choose the numbers to participate the lottery:</h4>
                     <div class="input-group">
                       <div class="input-group-prepend">
@@ -60,6 +64,9 @@
     <h3 class="text-center" id="eventNFTclass"></h3>
 
 
+    <script> var clearPrize = function(){
+        $("#prize").empty()
+    }</script>
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js" integrity="sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49" crossorigin="anonymous"></script>
