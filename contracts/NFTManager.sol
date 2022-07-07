@@ -18,14 +18,14 @@ contract NFTManager is ERC721URIStorage  {
     // collection of different images. To visualize the images on the dapp 
     // standard links were used
     string [MAX_CLASS] private classURI = [
-        "https://is1-ssl.mzstatic.com/image/thumb/Purple4/v4/dd/8d/37/dd8d3749-86b8-995f-2516-c4d032bddeb3/source/256x256bb.jpg",
-        "https://is3-ssl.mzstatic.com/image/thumb/Purple4/v4/9c/a7/22/9ca72215-42d2-75f3-1055-4a8f7ff62c4e/source/256x256bb.jpg",
-        "https://is1-ssl.mzstatic.com/image/thumb/Purple22/v4/9d/17/a2/9d17a2b8-990c-31d7-d442-d72531dae19e/source/256x256bb.jpg",
-        "https://play-lh.googleusercontent.com/fDL20r8lkjfNJgMgvHCQLvtHCFJ-H9Y4HN6nCTWfC4hsfGvTAawxqtHwABeJrdSXG7Zi=s256-rw",
-        "https://www.freeiconspng.com/thumbs/hello-kitty-png-icon/hello-kitty-icon-7.png",
-        "https://idigitalcitizen.files.wordpress.com/2009/07/pinkhellokitty.jpg",
-        "https://img.pixers.pics/pho(s3:700/PI/23/27/700_PI2327_65c65c262917a837fe5b7240420e1ab4_5b7ab916358ae_.,700,700,jpg)/poster-hello-kitty.jpg.jpg",
-        "https://p1.hiclipart.com/preview/670/83/741/sticker-bomb-white-and-pink-hello-kitty-png-clipart.jpg"
+        "https://raw.githubusercontent.com/96hoshi/TRY-DApp/main/img/1prize.jpg",
+        "https://raw.githubusercontent.com/96hoshi/TRY-DApp/main/img/2prize.jpg",
+        "https://raw.githubusercontent.com/96hoshi/TRY-DApp/main/img/3prize.jpg",
+        "https://github.com/96hoshi/TRY-DApp/blob/main/img/4prize.webp?raw=true",
+        "https://raw.githubusercontent.com/96hoshi/TRY-DApp/main/img/5prize.png",
+        "https://raw.githubusercontent.com/96hoshi/TRY-DApp/main/img/6prize.jpg",
+        "https://raw.githubusercontent.com/96hoshi/TRY-DApp/main/img/7prize.jpg",
+        "https://raw.githubusercontent.com/96hoshi/TRY-DApp/main/img/8prize.jpg"
     ];
 
     constructor() ERC721("NFTManager", "ITM") {
