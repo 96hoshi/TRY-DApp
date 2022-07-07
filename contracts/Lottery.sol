@@ -123,28 +123,28 @@ contract Lottery {
         require(block.number > numberClosedRound + K, "Error: You need to wait to extract numbers.");
         require(numbersDraw == false);
 
-        uint drawn;
-        uint [N_NUMBERS] memory drawnNumbers;
+        uint draw;
+        uint [N_NUMBERS] memory randomNumbers;
         uint nonce = block.difficulty;
 
         for (uint i = 0; i < N_NUMBERS; i++) {
             if (i != N_NUMBERS - 1) {
-                drawn = drawRandom(nonce++, block.timestamp, MAX_NUMBER);
+                draw = drawRandom(nonce++, block.timestamp, MAX_NUMBER);
             } else {
-                drawn = drawRandom(nonce++, block.timestamp, MAX_POWERBALL);
+                draw = drawRandom(nonce++, block.timestamp, MAX_POWERBALL);
             }
-            if ((isInArray(0, i, drawn, drawnNumbers))) {
+            if ((isInArray(0, i, draw, randomNumbers))) {
                 // redraw the number to avoid duplicates
                 emit RedrawNumber(i);
                 i--;
             } else {
-                drawnNumbers[i] = drawn;
+                randomNumbers[i] = draw;
             }
         }
-        winningNumbers = drawnNumbers;
+        winningNumbers = randomNumbers;
         numbersDraw = true;
 
-        emit CloseRound(lotteryManager, drawnNumbers);
+        emit CloseRound(lotteryManager, randomNumbers);
     }
 
     // used by lottery operator to distribute the prizes of the current lottery round
@@ -217,21 +217,17 @@ contract Lottery {
         require(lotteryActive);
         require(msg.sender == lotteryManager, "Only the manager can close the lottery contract.");
 
-        uint n_ticket;
-        
         // if the round is still active
         if (block.number < numberClosedRound) {
-           for (uint i = 0; i < players.length; i++) {
-            // send back the total amount corresponding to the prices of all the tickets bought in that round.
-                n_ticket = userTicketList[players[i]].length;
-                if (n_ticket > 0){
-                    payable(players[i]).transfer(TICKET_PRICE * n_ticket);
-                }
-            }
+            refund();
         } else {
             // if the round is finished but prizes were not been sent yet
-            if (winningNumbers.length > 0) {
+            if (!prizeGiven && numbersDraw) {
                 givePrizes();
+            } else {
+                if (!prizeGiven && !numbersDraw) {
+                refund();
+                }
             }
         }
         // close contract
@@ -241,6 +237,17 @@ contract Lottery {
     }
 
     /* *************  Support functions  ************* */
+
+    // send back the total amount corresponding to the prices of all the tickets bought in that round.
+    function refund() private {
+        uint n_ticket;
+        for (uint i = 0; i < players.length; i++) {
+            n_ticket = userTicketList[players[i]].length;
+            if (n_ticket > 0){
+                payable(players[i]).transfer(TICKET_PRICE * n_ticket);
+            }
+        }
+    }
 
     // checks if a ticket do not contains duplicates and if the numbers are valid
     function validate(uint [N_NUMBERS] memory array) private pure returns (bool) {
