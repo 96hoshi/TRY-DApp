@@ -4,6 +4,7 @@ App = {
     web3Provider: null,             // Web3 provider
     url: 'http://localhost:8545',   // Url for web3
     account: '0x0',                 // current ethereum account
+    lottery_addr: '0x0',
 
     init: function() {
         $("#alert").hide();
@@ -45,32 +46,47 @@ App = {
         });
 
         // Load content's abstractions
-        $.getJSON("Lottery.json").done(function(c) {
-            App.contracts["Contract"] = TruffleContract(c);
-            App.contracts["Contract"].setProvider(App.web3Provider);
+        $.getJSON("DappLottery.json").done(function(c) {
+            App.contracts["ContractManager"] = TruffleContract(c);
+            App.contracts["ContractManager"].setProvider(App.web3Provider);
+            return App.initLotteryContract();
+        });
+    },
 
-            return App.listenForEvents();
+    initLotteryContract: function() {
+
+        App.contracts["ContractManager"].deployed().then(async (instance) => {
+            App.lottery_addr = await instance.lottery_address();
+            console.log(App.lottery_addr)
+
+            if (App.lottery_addr != '0x0000000000000000000000000000000000000000'){
+                $.getJSON("Lottery.json").done(function(c) {
+                    App.contracts["Contract"] = TruffleContract(c);
+                    App.contracts["Contract"].setProvider(App.web3Provider);
+                    return App.listenForEvents();
+                });
+            }
+            return App.renderIndex();
         });
     },
 
     // Write the events listener
     listenForEvents: function() {
 
-        App.contracts["Contract"].deployed().then(async (instance) => {
+        App.contracts["Contract"].at(App.lottery_addr).then(async (instance) => {
 
         // the lottery operator open the lottery contract
-        instance.StartLottery().on('data', function (event) {
+        instance.StartLottery({
+            }).on('data', function (event) {
             console.log("Event Start Lottery");
             console.log(event);
             console.log("app: "+ App.account);
             console.log("event: "+ event.returnValues.owner);
-            if (App.account == event.returnValues.owner.toLowerCase()){
-                $("#eventMessage").html("Lottery created!")
-                $("#alert").fadeTo(2000, 500).slideUp(500, function(){
-                    $("#alert").slideUp(500);
-                });
-                self.location = "indexManager.html"
-            }
+            $("#eventMessage").html("Lottery created!")
+            $("#alert").fadeTo(2000, 500).slideUp(500, function(){
+                $("#alert").slideUp(500);
+            });
+
         });
         // a user buy a ticket
         instance.BuyTicket().on('data', function (event) {
@@ -87,7 +103,6 @@ App = {
         instance.OpenRound().on('data', function (event) {
             console.log("Event open round");
             console.log(event);
-            $("#eventEnd").html(event.returnValues.roundEnds);
             $("#eventMessage").html("The Lottery round has started.");
             $("#alert").fadeTo(2000, 500).slideUp(500, function(){
                 $("#alert").slideUp(500);
@@ -98,7 +113,6 @@ App = {
             console.log("Event close round");
             console.log(event);
             console.log("Winning numbers: " + event.returnValues.winningNumbers);
-            $("#eventWin").html("The drawn winning numbers are: "+event.returnValues.winningNumbers+".");
             $("#eventMessage").html("Round Closed!");
             $("#alert").fadeTo(2000, 500).slideUp(500, function(){
                 $("#alert").slideUp(500);
@@ -110,13 +124,10 @@ App = {
             console.log(event);
             console.log("token: "+ event.returnValues.NFTtoken);
             if (App.account == event.returnValues.owner.toLowerCase()){
-                setTimeout(function() {
-                    $("#eventNFTclass").html("You won a NFT of class "+event.returnValues.nftClass+".");
-                    $("#eventMessage").html("You won!");
-                    $("#alert").fadeTo(2000, 500).slideUp(500, function(){
-                        $("#alert").slideUp(500); 
-                    });
-                })
+                $("#eventMessage").html("You won!");
+                $("#alert").fadeTo(2000, 500).slideUp(500, function(){
+                    $("#alert").slideUp(500); 
+                });
             }
         });
         // a user who participated in the lottery did not win
@@ -138,7 +149,6 @@ App = {
             $("#alert").fadeTo(2000, 500).slideUp(500, function(){
                 $("#alert").slideUp(500);
             });
-            self.location = "indexClosed.html"
         });
     });
 
@@ -148,13 +158,15 @@ App = {
     //function that shows on screen info about lottery status
     render: function() {
 
-        App.contracts["Contract"].deployed().then(async(instance) =>{
-            const active = await instance.lotteryActive();
-            if (!active){
-                self.location = "indexClosed.html";
-                return
-            }
+        App.contracts["Contract"].at(App.lottery_addr).then(async(instance) =>{
+            // TODO: check for correct location if the lottery is not active
             const creator = await instance.lotteryManager();
+            // check for correct location for users
+            if (App.account != creator.toLowerCase() && self.location == "http://localhost:3000/indexManager.html"){
+                self.location = "index.html";
+                return;
+            }
+
             const tickets = await instance.tickets();
             const closedBlock = await instance.numberClosedRound();
             const latestBlock = await web3.eth.getBlockNumber();
@@ -168,7 +180,7 @@ App = {
                 statusRound = "Active"
             }
 
-            // print info about the lottery status
+            // print info about the lottery
             $("#statusRound").html("Round: "+ statusRound)
             $("#statusBlock").html("Current block: " + latestBlock)
             $("#closingBlock").html("Closing round block: " + closedBlock)
@@ -192,14 +204,16 @@ App = {
             // check if a player has won
             if (latestBlock >= prizesBlock){
                 instance.getPastEvents('NFTPrizeWon', {
-                    filter: {owner: App.account},
                     fromBlock: parseInt(closedBlock),
+                    toBlock: 'latest'
                 }, function(error, events){ console.log(events); })
                 .then(function(events){
                     if (events.length != 0){
-                        var classes = String(events[0].returnValues.nftClass);
-                        for (let i = 1; i < events.length; i++){
-                            classes = classes +"," + String(events[i].returnValues.nftClass);
+                        var classes = ""
+                        for (let i = 0; i < events.length; i++){
+                            if (App.account == events[i].returnValues.owner.toLowerCase()){
+                                classes = classes +" " + String(events[i].returnValues.nftClass);
+                            }
                         }
                         console.log("Classes: " + classes)
                         if (latestBlock >= prizesBlock){
@@ -209,38 +223,41 @@ App = {
                 });
                 // or not
                 instance.getPastEvents('NotWinner', {
-                    filter: {owner: App.account},
                     fromBlock: parseInt(closedBlock),
+                    toBlock: 'latest'
                 }, function(error, events){ console.log(events); })
                 .then(function(events){
                     if (events.length != 0){
-                        if (latestBlock >= prizesBlock)
-                            $("#eventNFTclass").html("Unlucky! You didn't win any prize.");
+                        for (let i = 1; i < events.length; i++){
+                            if (App.account == events[i].returnValues.owner.toLowerCase()){
+                                $("#eventNFTclass").html("Unlucky! You didn't win any prize.");
+                            }
+                        }
                     }
                 });
             }
+        });
+    },
 
-            // check for correct location for users
-            if (App.account != creator.toLowerCase() && self.location == "http://localhost:3000/indexManager.html"){
-                self.location = "index.html"
-            }
-            // check for correct location if the lottery is not active
-            instance.getPastEvents('CloseContract', {
-                fromBlock: 0,
-            }, function(error, events){ console.log(events); })
-            .then(function(events){
-                if (events.length != 0){
-                    self.location = "indexClosed.html"
-                }
-            });
+    renderIndex: function() {
+        App.contracts["ContractManager"].deployed().then(async(instance) =>{
+            const active = await instance.lottery_active();
+            var status = "not active"
+
+            if (active) {
+                status = "active"
+            } 
+            $("#statusLottery").html("The lottery is "+status+"!");
         });
     },
 
     renderManager: function() {
 
-        App.contracts["Contract"].deployed().then(async(instance) =>{
-            const manager = await instance.lotteryManager();
-            const active = await instance.lotteryActive();
+        App.contracts["ContractManager"].deployed().then(async(instance) =>{
+            const manager = await instance.lottery_manager();
+            const active = await instance.lottery_active();
+            console.log(manager)
+            console.log(active)
 
             if (!active) {
                 self.location = "indexStartLottery.html"
@@ -257,9 +274,8 @@ App = {
 
     renderUser: function() {
 
-        console.log(App.contracts["Contract"])
-        App.contracts["Contract"].deployed().then(async(instance) =>{
-            const active = await instance.lotteryActive();
+        App.contracts["ContractManager"].deployed().then(async(instance) =>{
+            const active = await instance.lottery_active();
             if (!active){
                 $("#eventMessage").html("Error: No lottery active.");
                 $("#alert").fadeTo(2000, 500).slideUp(500, function(){
@@ -272,27 +288,37 @@ App = {
         });
     },
 
-    startLottery: function() {
+    createLottery: function() {
 
-        console.log(App.contracts["Contract"])
-        App.contracts["Contract"].deployed().then(async(instance) =>{
+        console.log(App.contracts["ContractManager"])
+        App.contracts["ContractManager"].deployed().then(async(instance) =>{
+            const active = await instance.lottery_active();
+            if (active){
+                $("#eventMessage").html("Error: Lottery already active");
+                $("#alert").fadeTo(2000, 500).slideUp(500, function(){
+                    $("#alert").slideUp(500);
+                });
+                return;
+            }
             const duration = +document.getElementById("inputDuration").value;
             try {
-                await instance.startLottery(duration, {from: App.account});
+                await instance.createLottery(duration, {from: App.account});
             } catch (e) {
                 console.log(e);
                 $("#eventMessage").html("Error: Invalid number.");
                 $("#alert").fadeTo(2000, 500).slideUp(500, function(){
                     $("#alert").slideUp(500);
                 });
+                return;
             }
+            self.location = "indexManager.html"
         });
     },
 
     buy: function() {
 
         console.log(App.contracts["Contract"])
-        App.contracts["Contract"].deployed().then(async(instance) =>{
+        App.contracts["Contract"].at(App.lottery_addr).then(async(instance) =>{
             var input = document.getElementsByName('inputNumbers[]');
             var numbers = new Array(6);
             // retrieve values input
@@ -338,7 +364,7 @@ App = {
     showPrize: function(){
 
         console.log(App.contracts["Contract"])
-        App.contracts["Contract"].deployed().then(async(instance) =>{
+        App.contracts["Contract"].at(App.lottery_addr).then(async(instance) =>{
             try {
                 const l = await instance.getNFTList({from: App.account});
                 const c = await instance.getNFTListClass({from: App.account});
@@ -369,7 +395,7 @@ App = {
     startNewRound: function() {
 
         console.log(App.contracts["Contract"])
-        App.contracts["Contract"].deployed().then(async(instance) =>{
+        App.contracts["Contract"].at(App.lottery_addr).then(async(instance) =>{
             const manager = await instance.lotteryManager();
             if (App.account != manager.toLowerCase()) {
                 self.location = "index.html"
@@ -396,7 +422,7 @@ App = {
     drawNumbers: function() {
 
         console.log(App.contracts["Contract"])
-        App.contracts["Contract"].deployed().then(async(instance) =>{
+        App.contracts["Contract"].at(App.lottery_addr).then(async(instance) =>{
             const manager = await instance.lotteryManager();
             if (App.account != manager.toLowerCase()) {
                 self.location = "index.html"
@@ -426,7 +452,7 @@ App = {
     givePrizes: function() {
 
         console.log(App.contracts["Contract"])
-        App.contracts["Contract"].deployed().then(async(instance) =>{
+        App.contracts["Contract"].at(App.lottery_addr).then(async(instance) =>{
             const manager = await instance.lotteryManager();
             if (App.account != manager.toLowerCase()) {
                 self.location = "index.html"
@@ -455,8 +481,7 @@ App = {
 
     closeLottery: function() {
 
-        console.log(App.contracts["Contract"])
-        App.contracts["Contract"].deployed().then(async(instance) =>{
+        App.contracts["Contract"].at(App.lottery_addr).then(async(instance) =>{
             const manager = await instance.lotteryManager();
             if (App.account != manager.toLowerCase()) {
                 self.location = "index.html"
@@ -471,9 +496,23 @@ App = {
                 $("#eventMessage").html("Error: function reverted.");
                 $("#alert").fadeTo(2000, 500).slideUp(500, function(){
                     $("#alert").slideUp(500);
+                return
                 });
             }
+            return App.closeLotteryContract();
         });
+    },
+
+    closeLotteryContract: function() {
+
+        App.contracts["ContractManager"].deployed().then(async(instance) => {
+            await instance.closeLottery({from: App.account});
+            App.lottery_addr = await instance.lottery_address();
+            console.log(App.lottery_addr)
+            console.log("lottery closed")
+            self.location = "index.html"
+        });
+
     }
 }
 
