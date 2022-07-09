@@ -31,11 +31,11 @@ App = {
             web3 = new Web3(App.web3Provider);
         }
 
-        return App.initContract();
+        return App.initContractManager();
     },
 
     /* Upload the contract's abstractions */
-    initContract: function() {
+    initContractManager: function() {
 
         // Get current account
         web3.eth.getCoinbase(function(err, account) {
@@ -159,7 +159,6 @@ App = {
     render: function() {
 
         App.contracts["Contract"].at(App.lottery_addr).then(async(instance) =>{
-            // TODO: check for correct location if the lottery is not active
             const creator = await instance.lotteryManager();
             // check for correct location for users
             if (App.account != creator.toLowerCase() && self.location == "http://localhost:3000/indexManager.html"){
@@ -259,9 +258,9 @@ App = {
             console.log(manager)
             console.log(active)
 
-            if (!active) {
+            if (!active && App.account == manager.toLowerCase()) {
                 self.location = "indexStartLottery.html"
-            } else if (App.account == manager.toLowerCase()) {
+            } else if (active && App.account == manager.toLowerCase()) {
                 self.location = "indexManager.html"
             } else {
                 $("#eventMessage").html("Error: You're not the manager!");
