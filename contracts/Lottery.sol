@@ -12,6 +12,7 @@ contract Lottery {
     uint private constant MAX_NUMBER = 69;
     uint private constant MAX_POWERBALL = 26;
     uint public constant K = 2;                             // parameter to draw numbers
+    bool private constant DEBUG = true;
 
     uint public M;
     bool public lotteryActive = false;
@@ -42,13 +43,8 @@ contract Lottery {
     event RedrawNumber(uint index);
 
 
-    constructor () {
-    }
-
-    function startLottery (uint _M) public {
-        require(!lotteryActive, "The lottery is already active!");
-
-        lotteryManager = msg.sender;
+    constructor (uint _M, address manager) {
+        lotteryManager = manager;
         emit StartLottery(lotteryManager);
         M = _M;
         lotteryActive = true;
@@ -122,6 +118,12 @@ contract Lottery {
         require(msg.sender == lotteryManager, "Only the manager can draw the numbers of the lottery.");
         require(block.number > numberClosedRound + K, "Error: You need to wait to extract numbers.");
         require(numbersDraw == false);
+        if (DEBUG) {
+            winningNumbers = [1,2,3,4,5,6];
+            numbersDraw = true;
+            emit CloseRound(lotteryManager, winningNumbers);
+            return;
+        }
 
         uint draw;
         uint [N_NUMBERS] memory randomNumbers;
@@ -205,7 +207,7 @@ contract Lottery {
 
     // used to mint new collectibles
     function mint (uint _class) private returns (uint256) {
-        require(msg.sender == lotteryManager, "Only the manager can mint prizes.");
+        //require(msg.sender == lotteryManager, "Only the manager can mint prizes.");
         require(_class > 0 && _class < 9);
 
         uint id = NFTman.awardItem(_class);
@@ -226,7 +228,7 @@ contract Lottery {
                 givePrizes();
             } else {
                 if (!prizeGiven && !numbersDraw) {
-                refund();
+                    refund();
                 }
             }
         }

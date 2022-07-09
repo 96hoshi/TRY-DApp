@@ -1,5 +1,5 @@
-const Contract = artifacts.require("Lottery");
+const ContractManager = artifacts.require("DappLottery");
 
 module.exports = function (deployer) {
-    deployer.deploy(Contract);
+    deployer.deploy(ContractManager);
 };
