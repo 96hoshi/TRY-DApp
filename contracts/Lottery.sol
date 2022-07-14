@@ -12,7 +12,6 @@ contract Lottery {
     uint private constant MAX_NUMBER = 69;
     uint private constant MAX_POWERBALL = 26;
     uint public constant K = 2;                             // parameter to draw numbers
-    bool private constant DEBUG = true;
 
     uint public M;
     bool public lotteryActive = false;
@@ -115,12 +114,6 @@ contract Lottery {
         require(msg.sender == lotteryManager, "Only the manager can draw the numbers of the lottery.");
         require(block.number > numberClosedRound + K, "Error: You need to wait to extract numbers.");
         require(numbersDraw == false);
-        if (DEBUG) {
-            winningNumbers = [1,2,3,4,5,6];
-            numbersDraw = true;
-            emit CloseRound(lotteryManager, winningNumbers);
-            return;
-        }
 
         uint draw;
         uint [N_NUMBERS] memory randomNumbers;
