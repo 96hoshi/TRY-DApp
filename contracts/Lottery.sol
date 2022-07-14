@@ -50,17 +50,14 @@ contract Lottery {
         lotteryActive = true;
         NFTman = new NFTManager();
         tickets = 0;
+        prizeGiven = true;
+        numbersDraw = true;
 
         // initialize NFTs
         for (uint i = 1 ; i < 9; i++) {
             NFTPrize[i] = mint(i);
             NFTAviable[i] = true;
        }
-        // fixed round duration in terms of number of blocks
-        numberClosedRound = block.number + M;
-        prizeGiven = false;
-        numbersDraw = false;
-        emit OpenRound(lotteryManager, numberClosedRound);
     }
 
     // allows users to buy a ticket. The numbers picked by a user in
@@ -207,7 +204,6 @@ contract Lottery {
 
     // used to mint new collectibles
     function mint (uint _class) private returns (uint256) {
-        //require(msg.sender == lotteryManager, "Only the manager can mint prizes.");
         require(_class > 0 && _class < 9);
 
         uint id = NFTman.awardItem(_class);
@@ -218,6 +214,7 @@ contract Lottery {
     function closeLottery (address _to) public {
         require(lotteryActive);
         require(msg.sender == lotteryManager, "Only the manager can close the lottery contract.");
+        require(_to != address(0));
 
         // if the round is still active
         if (block.number < numberClosedRound) {

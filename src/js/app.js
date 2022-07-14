@@ -16,7 +16,7 @@ App = {
         console.log("Entered")
         
         if(typeof web3 != 'undefined') {
-            App.web3Provider = window.ethereum; // !! new standard for modern eth browsers (2/11/18)
+            App.web3Provider = window.ethereum;
             web3 = new Web3(App.web3Provider);
             try {
                     ethereum.enable().then(async() => {
@@ -27,7 +27,7 @@ App = {
                 console.log(error);
             }
         } else {
-            App.web3Provider = new Web3.providers.HttpProvider(App.url); // <==
+            App.web3Provider = new Web3.providers.HttpProvider(App.url);
             web3 = new Web3(App.web3Provider);
         }
 
@@ -155,7 +155,7 @@ App = {
         return App.render();
     },
 
-    //function that shows on screen info about lottery status
+    //function that shows on screen info about lottery round status
     render: function() {
 
         App.contracts["Contract"].at(App.lottery_addr).then(async(instance) =>{
@@ -179,13 +179,17 @@ App = {
                 statusRound = "Active"
             }
 
+            if ( parseInt(closedBlock) == 0){
+                prizesBlock = 0;
+            }
+
             // print info about the lottery
             $("#statusRound").html("Round: "+ statusRound)
             $("#statusBlock").html("Current block: " + latestBlock)
             $("#closingBlock").html("Closing round block: " + closedBlock)
             $("#statusPrizes").html("Draw numbers from block: " + prizesBlock)
             $("#ticketsSold").html("Tickets sold this round: " + tickets)
-            $("#creator").html("" + creator);
+            $("#prizeWon").html("NFT won this round: 0");
             $("#userPrizes").html("Your prizes: " + userPrizes)
 
             // retrive last winning numbers
@@ -209,6 +213,7 @@ App = {
                 .then(function(events){
                     if (events.length != 0){
                         var classes = ""
+                        $("#prizeWon").html("NFT won this round: "+String(events.length));
                         for (let i = 0; i < events.length; i++){
                             if (App.account == events[i].returnValues.owner.toLowerCase()){
                                 classes = classes +" " + String(events[i].returnValues.nftClass);
@@ -485,9 +490,11 @@ App = {
             if (App.account != manager.toLowerCase()) {
                 self.location = "index.html"
             }
-
-            // TODO: define _to the address given by the manager to transfer eth
-            const _to = App.account
+            var _to = document.getElementById("_to").value.trim();
+            if (_to == ""){
+                _to = App.account
+            }
+            console.log(_to)
             try {
                 await instance.closeLottery(_to, {from: App.account});
             } catch (e) {
@@ -495,7 +502,7 @@ App = {
                 $("#eventMessage").html("Error: function reverted.");
                 $("#alert").fadeTo(2000, 500).slideUp(500, function(){
                     $("#alert").slideUp(500);
-                return
+                return;
                 });
             }
             return App.closeLotteryContract();

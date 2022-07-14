@@ -31,6 +31,7 @@
           <h6 id="closingBlock"></h6>
           <h6 id="statusPrizes"></h6>
           <h6 id="ticketsSold"></h6>
+          <h6 id="prizeWon"></h6>
         </div>
 
     <div class="container text-center" >
@@ -38,13 +39,14 @@
             <div id="mainUI" class="col-lg-9">
                 <br>
                 <h1 class="display-4">Manager</h1>
-                <h2>The owner of this DApp is:</h2>
-                <h3 id="creator"></h3>
+                <h4>Control Panel</h4>
                 <button class="btn btn-primary" onclick="App.startNewRound()">Start new round</button>
                 <button class="btn btn-primary" onclick="App.drawNumbers()">Draw numbers</button>
                 <button class="btn btn-primary" onclick="App.givePrizes()">Give prizes</button>
-                <button class="btn btn-danger" onclick="App.closeLottery()">Close the Lottery</button>
                 <br> <br>
+                <h6>To close the lottery provide an address, if different from Manager:</h6>
+                <button class="btn btn-danger" onclick="App.closeLottery()">Close the Lottery</button>
+                <input type="text" id="_to" size="40" placeholder="address (optional)">
                 <h3 class="text-center" id="eventWin"></h3>
             </div>
         </div>
